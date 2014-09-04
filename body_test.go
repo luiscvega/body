@@ -20,7 +20,7 @@ func TestParse(t *testing.T) {
 		LastName  string   `name:"user[last_name]"`
 		Age       int      `name:"user[age]"`
 		Cities    []string `name:"user[cities][]"`
-		Ids       []int64    `name:"user[ids][]"`
+		Ids       []int64  `name:"user[ids][]"`
 	}
 
 	var signupForm = new(SignupForm)
@@ -49,7 +49,7 @@ func TestParse(t *testing.T) {
 		t.Error("Failed!")
 	}
 
-	if !reflect.DeepEqual(signupForm.Ids, []int64{1,2,3,4}) {
+	if !reflect.DeepEqual(signupForm.Ids, []int64{1, 2, 3, 4}) {
 		t.Error("Failed!")
 	}
 }
