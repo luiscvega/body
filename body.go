@@ -5,15 +5,19 @@ import (
 	"strconv"
 )
 
-func Parse(params map[string][]string, s interface{}) (err error) {
-	v := reflect.ValueOf(s).Elem()
-	t := v.Type()
+type Parser struct {
+	params map[string][]string
+	s      interface{}
+	v      reflect.Value
+	t      reflect.Type
+}
 
-	for i := 0; i < v.NumField(); i++ {
+func (p Parser) parse() (err error) {
+	for i := 0; i < p.v.NumField(); i++ {
 		var (
-			field     = v.Field(i)
-			tagName   = t.Field(i).Tag.Get("name")
-			param_val = params[tagName]
+			field     = p.v.Field(i)
+			tagName   = p.t.Field(i).Tag.Get("name")
+			param_val = p.params[tagName]
 		)
 
 		switch field.Kind() {
@@ -40,5 +44,17 @@ func Parse(params map[string][]string, s interface{}) (err error) {
 		}
 	}
 
-	return err
+	return
+}
+
+func Parse(params map[string][]string, s interface{}) (err error) {
+	parser := Parser{
+		params: params,
+		s:      s,
+		v:      reflect.ValueOf(s).Elem(),
+		t:      reflect.ValueOf(s).Elem().Type()}
+
+	err = parser.parse()
+
+	return
 }
