@@ -1,22 +1,35 @@
 package body
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 )
 
+func Parse(params map[string][]string, s interface{}) (err error) {
+	parser := Parser{
+		params: params,
+		struc:  s,
+		val:    reflect.ValueOf(s).Elem(),
+		typ:    reflect.ValueOf(s).Elem().Type()}
+
+	err = parser.parse()
+
+	return
+}
+
 type Parser struct {
 	params map[string][]string
-	s      interface{}
-	v      reflect.Value
-	t      reflect.Type
+	struc  interface{}
+	val    reflect.Value
+	typ    reflect.Type
 }
 
 func (p Parser) parse() (err error) {
-	for i := 0; i < p.v.NumField(); i++ {
+	for i := 0; i < p.val.NumField(); i++ {
 		var (
-			field     = p.v.Field(i)
-			tagName   = p.t.Field(i).Tag.Get("name")
+			field     = p.val.Field(i)
+			tagName   = p.typ.Field(i).Tag.Get("name")
 			param_val = p.params[tagName]
 		)
 
@@ -29,13 +42,12 @@ func (p Parser) parse() (err error) {
 		case reflect.Slice:
 			slice := reflect.MakeSlice(field.Type(), 0, 0)
 
-			for _, s := range param_val {
-				if field.Type().Elem().Kind() == reflect.String {
-					slice = reflect.Append(slice, reflect.ValueOf(s))
-				}
-
-				if field.Type().Elem().Kind() == reflect.Int64 {
-					integer, _ := strconv.ParseInt(s, 10, 64)
+			for _, item := range param_val {
+				switch field.Type().Elem().Kind() {
+				case reflect.String:
+					slice = reflect.Append(slice, reflect.ValueOf(item))
+				case reflect.Int64:
+					integer, _ := strconv.ParseInt(item, 10, 64)
 					slice = reflect.Append(slice, reflect.ValueOf(integer))
 				}
 			}
@@ -43,18 +55,6 @@ func (p Parser) parse() (err error) {
 			field.Set(slice)
 		}
 	}
-
-	return
-}
-
-func Parse(params map[string][]string, s interface{}) (err error) {
-	parser := Parser{
-		params: params,
-		s:      s,
-		v:      reflect.ValueOf(s).Elem(),
-		t:      reflect.ValueOf(s).Elem().Type()}
-
-	err = parser.parse()
 
 	return
 }
